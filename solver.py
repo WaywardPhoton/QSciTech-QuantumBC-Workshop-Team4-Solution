@@ -121,14 +121,18 @@ class VQESolver(LCPSSolver):
 
         t0 = time.time()
 
-        opt_value, opt_params = None
+       # opt_value, opt_params = None
 
         ################################################################################################################
         # YOUR CODE HERE (OPTIONAL)
         # TO COMPLETE (after activity 3.2)
+        self.evaluator.set_linear_combinaison_pauli_string(lcps)
+        minimization_result = self.minimizer(self.evaluator.eval,self.start_params)
+        opt_params = minimization_result.x
+        opt_value = minimization_result.fun
         ################################################################################################################
 
-        raise NotImplementedError()
+        #raise NotImplementedError()
 
         self.last_minimization_duration = time.time()-t0
         
