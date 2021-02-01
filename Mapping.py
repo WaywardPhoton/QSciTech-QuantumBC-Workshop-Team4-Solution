@@ -125,8 +125,28 @@ class Parity(Mapping):
         ################################################################################################################
         # YOUR CODE HERE
         # OPTIONAL
+        coefs_creation = np.array([0.5,-0.5j],dtype = complex)
+        coefs_annihilation = np.array([0.5,0.5j],dtype = complex)
+        for i in reversed(range(0,n_qubits)):
+            paulis1 = ['I'] * n_qubits
+            paulis2 = ['I'] * n_qubits
+            #if i == 0:
+            paulis1[i] = 'X'
+            paulis2[i] = 'Y'
+            if i < (n_qubits-1):
+                paulis1[i+1] = 'Z'
+            if i != 0:               
+                paulis1[0:i] = ['X']*i
+                paulis2[0:i] = ['X']*i
+            
+            pauli_string_1 = PauliString.from_str(paulis1)
+            pauli_string_2 = PauliString.from_str(paulis2)
+            pauli_strings = np.array([pauli_string_1,pauli_string_2],dtype = PauliString)
+            aps.append(LinearCombinaisonPauliString(coefs_creation,pauli_strings))
+            ams.append(LinearCombinaisonPauliString(coefs_annihilation,pauli_strings))  
+            
         ################################################################################################################
 
-        raise NotImplementedError()
+        #raise NotImplementedError()
 
         return aps, ams

@@ -228,10 +228,10 @@ class TwoBodyFermionicHamiltonian(FermionicHamiltonian):
         # YOUR CODE HERE
         # TO COMPLETE (after activity 2.2)
         # Hint : make use of np.einsum
-        new_integrals = np.einsum('mi,nj,ok,pl,mnop->ijkl',transform,transform, self.integrals)
+        # new_integrals =
         ################################################################################################################
 
-        
+        raise NotImplementedError()
 
         return TwoBodyFermionicHamiltonian(new_integrals, self.with_spin)
 
