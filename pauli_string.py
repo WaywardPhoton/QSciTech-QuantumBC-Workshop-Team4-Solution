@@ -166,8 +166,6 @@ class PauliString(object):
         z_bits = np.array(list(reversed(z_bits)),dtype = bool)
         ################################################################################################################
         
-        #raise NotImplementedError()
-        
         return cls(z_bits, x_bits)
 
     def to_zx_bits(self):
@@ -206,6 +204,7 @@ class PauliString(object):
         # YOUR CODE HERE
         # TO COMPLETE (after activity 3.1)
         xz_bits = [self.x_bits,self.z_bits]
+       
         ################################################################################################################
         
         #raise NotImplementedError()
