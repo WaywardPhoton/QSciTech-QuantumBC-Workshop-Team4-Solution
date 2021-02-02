@@ -143,6 +143,7 @@ class Evaluator(object):
         # TO COMPLETE (after activity 3.2)
         if self.n_qubits == 4:
             varform_4qubits = QuantumCircuit(4)
+            varform_4qubits_3params = QuantumCircuit(4)
             
             if len(params) == 1:
                 a = Parameter('a')

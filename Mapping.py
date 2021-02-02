@@ -86,7 +86,7 @@ class JordanWigner(Mapping):
                     paulis1[n_qubits-j-1] = paulis2[n_qubits-j-1] = 'Z'            
             pauli_string_1 = PauliString.from_str(paulis1)
             pauli_string_2 = PauliString.from_str(paulis2)
-            pauli_strings = np.array([pauli_string_1,pauli_string_2],dtype = PauliString)
+            pauli_strings = ([pauli_string_1,pauli_string_2])
             aps.append(LinearCombinaisonPauliString(coefs_creation,pauli_strings))
             ams.append(LinearCombinaisonPauliString(coefs_annihilation,pauli_strings))         
 

@@ -235,6 +235,8 @@ class PauliString(object):
         # TO COMPLETE (after activity 3.1)
 
         
+
+        
         new_z_bits = np.logical_xor(self.z_bits,other.z_bits)
         new_x_bits = np.logical_xor(self.x_bits,other.x_bits)
         w1 = np.sum(2*(other.z_bits*self.x_bits))
@@ -327,13 +329,23 @@ class PauliString(object):
         # Hints : start with
         matrix = np.ones((1,1),dtype = np.complex)
         # And then use the np.kron() method to build the matrix
-        print()
+
+        y_bits=np.logical_not(np.logical_xor(self.x_bits, self.z_bits))
+        x_bits= np.logical_xor(y_bits,self.x_bits)   
+        z_bits=np.logical_xor(y_bits,self.z_bits)
+        y_bits=y_bits[::-1] 
+        z_bits=z_bits[::-1] 
+        x_bits=x_bits[::-1]   
+        
+        result=x_bits[0]*X_MAT+y_bits[0]*Y_MAT+z_bits[0]*Z_MAT
+        for i in range(len(self)-1):  
+            result= np.kron(result, x_bits[i+1]*X_MAT+y_bits[i+1]*Y_MAT+z_bits[i+1]*Z_MAT)
         
         ################################################################################################################
 
         #raise NotImplementedError()
         
-        return matrix
+        return result
 
 
 class LinearCombinaisonPauliString(object):
@@ -747,8 +759,9 @@ class LinearCombinaisonPauliString(object):
         # TO COMPLETE (after activity 3.1)
         # Hints : sum all the matrices of all PauliStrings weighted by their coef
         ################################################################################################################
-
-        raise NotImplementedError()
+        for i in range(len(self)):
+            matrix=matrix+ self.coefs[i] * PauliString.to_matrix(self.pauli_strings[i])
+        # raise NotImplementedError()
 
         return matrix
 
