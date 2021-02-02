@@ -20,13 +20,15 @@ limitations under the License.
 
 from qiskit import QuantumCircuit, execute
 from qiskit.circuit import Parameter
+from qiskit.ignis.mitigation.measurement import complete_meas_cal
+from qiskit.ignis.mitigation.measurement import CompleteMeasFitter
 import time
 import numpy as np
 from pauli_string import PauliString
 
 
 class Evaluator(object):
-    def __init__(self, varform, backend, execute_opts={}, measure_filter=None, record=None):
+    def __init__(self, varform, backend, execute_opts={}, zero_noise_extrapolation = 0, measure_filter=None, record=None):
         """
         An Evaluator allows to transform a LCPS into a callable function. The LCPS is not set at the initialization.
         The evaluator will build the QuantumCircuit necessary to estimate the expected value of the LCPS. Upon using 
@@ -57,6 +59,7 @@ class Evaluator(object):
         self.n_qubits = None
         self.measurement_circuits = list()
         self.interpreters = list()
+        self.zero_noise_extrapolation = zero_noise_extrapolation
 
     def set_linear_combinaison_pauli_string(self, lcps):
         """
@@ -70,7 +73,7 @@ class Evaluator(object):
         """
 
         self.n_qubits = lcps.n_qubits
-        self.measurement_circuits, self.interpreters = self.prepare_measurement_circuits_and_interpreters(lcps)
+        self.measurement_circuits, self.interpreters = self.prepare_measurement_circuits_and_interpreters(lcps,self.zero_noise_extrapolation)
 
     def eval(self, params):
         """
@@ -87,6 +90,7 @@ class Evaluator(object):
         t0 = time.time()
         eval_circuits = self.prepare_eval_circuits(params)
         counts_arrays = list()
+        
 
         ################################################################################################################
         # YOUR CODE HERE
@@ -95,15 +99,19 @@ class Evaluator(object):
                      
         #   1. Execute the eval_circuits on the backend
         job = execute(eval_circuits,backend=self.backend,**self.execute_opts)
-        # job_monitor(job)
+        #job_monitor(job)
         result = job.result()
         
         for eval_circuit,interpreter in zip(eval_circuits,self.interpreters):
             
         #   2. Extract the result from the job
-            counts = result.get_counts(eval_circuit)
+            #counts = result.get_counts(eval_circuit)
             
         #   2. (Optional) Apply error mitigation with the measure_filter
+            #if self.measure_filter != None:
+            counts = self.measure_filter.apply(result).get_counts(eval_circuit)
+        
+        
         #   3. Assemble the counts into an array with counts2array()        
             counts_circuit = self.counts2array(counts)
             
@@ -142,17 +150,88 @@ class Evaluator(object):
         ################################################################################################################
         # YOUR CODE HERE
         # TO COMPLETE (after activity 3.2)
+        a = Parameter('a')
+        zne_circuits_ry = QuantumCircuit(4)
+        zne_circuits_ry.barrier(1)
+        zne_circuits_ry.ry(a,1)
+        zne_circuits_ry.barrier(1)
+        zne_circuits_ry.ry(-a,1)
+        zne_circuits_ry.barrier(1)
+        
+        zne_circuits_x = QuantumCircuit(4)
+        zne_circuits_x.barrier(0)
+        zne_circuits_x.x(0)
+        zne_circuits_x.barrier(0)
+        zne_circuits_x.x(0)
+        zne_circuits_x.barrier(0)
+        
+        zne_circuits_cx1 = QuantumCircuit(4)
+        zne_circuits_cx1.barrier(1,0)
+        zne_circuits_cx1.cx(1,0)
+        zne_circuits_cx1.barrier(1,0)
+        zne_circuits_cx1.cx(1,0)
+        zne_circuits_cx1.barrier(1,0)
+        
+        zne_circuits_cx2 = QuantumCircuit(4)
+        zne_circuits_cx2.barrier(0,2)
+        zne_circuits_cx2.cx(0,2)
+        zne_circuits_cx2.barrier(0,2)
+        zne_circuits_cx2.cx(0,2)
+        zne_circuits_cx2.barrier(0,2)   
+        
+        zne_circuits_cx3 = QuantumCircuit(4)
+        zne_circuits_cx3.barrier(1,3)
+        zne_circuits_cx3.cx(1,3)
+        zne_circuits_cx3.barrier(1,3)
+        zne_circuits_cx3.cx(1,3)
+        zne_circuits_cx3.barrier(1,3)        
+        
         if self.n_qubits == 4:
             varform_4qubits = QuantumCircuit(4)
-            varform_4qubits_3params = QuantumCircuit(4)
             
             if len(params) == 1:
-                a = Parameter('a')
+                #a = Parameter('a')
+                
                 varform_4qubits.ry(a,1)
+                if self.zero_noise_extrapolation == 0:
+                    varform_4qubits = varform_4qubits
+                if self.zero_noise_extrapolation == 1:
+                    varform_4qubits = varform_4qubits + zne_circuits_ry
+                if self.zero_noise_extrapolation == 2:
+                    varform_4qubits = varform_4qubits + zne_circuits_ry + zne_circuits_ry
+                    
                 varform_4qubits.x(0)
+                if self.zero_noise_extrapolation == 0:
+                    varform_4qubits = varform_4qubits
+                if self.zero_noise_extrapolation == 1:
+                    varform_4qubits = varform_4qubits + zne_circuits_x
+                if self.zero_noise_extrapolation == 2:
+                    varform_4qubits = varform_4qubits + zne_circuits_x + zne_circuits_x
+                    
                 varform_4qubits.cx(1,0)
+                if self.zero_noise_extrapolation == 0:
+                    varform_4qubits = varform_4qubits
+                if self.zero_noise_extrapolation == 1:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx1
+                if self.zero_noise_extrapolation == 2:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx1 + zne_circuits_cx1
+                    
                 varform_4qubits.cx(0,2)
+                if self.zero_noise_extrapolation == 0:
+                    varform_4qubits = varform_4qubits
+                if self.zero_noise_extrapolation == 1:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx2
+                if self.zero_noise_extrapolation == 2:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx2 + zne_circuits_cx2
+                
                 varform_4qubits.cx(1,3)
+                if self.zero_noise_extrapolation == 0:
+                    varform_4qubits = varform_4qubits
+                if self.zero_noise_extrapolation == 1:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx3
+                if self.zero_noise_extrapolation == 2:
+                    varform_4qubits = varform_4qubits + zne_circuits_cx3 + zne_circuits_cx3
+                    
                 param_dict = dict(zip(varform_4qubits.parameters,params))
                 varform = varform_4qubits.assign_parameters(param_dict)
                 
@@ -249,7 +328,7 @@ class Evaluator(object):
         return value
 
     @staticmethod
-    def pauli_string_based_measurement(pauli_string):
+    def pauli_string_based_measurement(pauli_string,zero_noise_extrapolation = None):
         """
         Build a QuantumCircuit that measures the qubits in the basis given by a PauliString.
 
@@ -260,7 +339,7 @@ class Evaluator(object):
             qiskit.QuantumCircuit: A quantum circuit starting with rotation of the qubit following the PauliString and
                                    finishing with the measurement of all the qubits.
         """
-
+        zero_noise_extrapolation = zero_noise_extrapolation
         n_qubits = len(pauli_string)
         qc = QuantumCircuit(n_qubits, n_qubits)
         
@@ -278,9 +357,61 @@ class Evaluator(object):
         for i in range(len(pauli_ops)):
             if pauli_ops[i] == 'X':
                 qc.h(i)
+                if zero_noise_extrapolation == 1:
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                if zero_noise_extrapolation == 2:
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                
             if pauli_ops[i] == 'Y':
                 qc.sdg(i)
+                if zero_noise_extrapolation == 1:
+                    qc.barrier(i)
+                    qc.s(i)
+                    qc.barrier(i)
+                    qc.sdg(i)
+                    qc.barrier(i)
+                if zero_noise_extrapolation == 2:
+                    qc.barrier(i)
+                    qc.s(i)
+                    qc.barrier(i)
+                    qc.sdg(i)
+                    qc.barrier(i)
+                    qc.s(i)
+                    qc.barrier(i)
+                    qc.sdg(i)
+                    qc.barrier(i)                    
+                    
                 qc.h(i)
+                if zero_noise_extrapolation == 1:
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                if zero_noise_extrapolation == 2:
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
+                    qc.h(i)
+                    qc.barrier(i)
         qc.measure(range(0,len(list(str(pauli_string)))),range(0,len(list(str(pauli_string)))))
                 
         ################################################################################################################
@@ -336,7 +467,7 @@ class BasicEvaluator(Evaluator):
     """
     
     @staticmethod
-    def prepare_measurement_circuits_and_interpreters(lcps):
+    def prepare_measurement_circuits_and_interpreters(lcps,zne_level):
         """
         For each PauliString in the LCPS, this method build a measurement QuantumCircuit and provide the associated
         interpreter. This interpreter allow to compute h<P> = sum_i T_i N_i/N_tot for each PauliString.
@@ -356,12 +487,12 @@ class BasicEvaluator(Evaluator):
         # TO COMPLETE (after activity 3.2)
         # Hint : the next method does the work for 1 PauliString + coef
         for i in range(0,len(lcps)):
-            circuits.append(Evaluator.pauli_string_based_measurement(lcps.pauli_strings[i]))
+            circuits.append(Evaluator.pauli_string_based_measurement(lcps.pauli_strings[i],zero_noise_extrapolation = zne_level))
             interpreters.append(lcps.coefs[i] * Evaluator.measurable_eigenvalues(lcps.pauli_strings[i]))
         ################################################################################################################
         
         #raise NotImplementedError()
-
+        
         return circuits, interpreters
 
     @staticmethod
