@@ -166,6 +166,8 @@ class PauliString(object):
         z_bits = np.array(list(reversed(z_bits)),dtype = bool)
         ################################################################################################################
         
+        #raise NotImplementedError()
+        
         return cls(z_bits, x_bits)
 
     def to_zx_bits(self):
@@ -204,7 +206,6 @@ class PauliString(object):
         # YOUR CODE HERE
         # TO COMPLETE (after activity 3.1)
         xz_bits = [self.x_bits,self.z_bits]
-       
         ################################################################################################################
         
         #raise NotImplementedError()
@@ -330,16 +331,28 @@ class PauliString(object):
         matrix = np.ones((1,1),dtype = np.complex)
         # And then use the np.kron() method to build the matrix
 
-        y_bits=np.logical_not(np.logical_xor(self.x_bits, self.z_bits))
-        x_bits= np.logical_xor(y_bits,self.x_bits)   
-        z_bits=np.logical_xor(y_bits,self.z_bits)
-        y_bits=y_bits[::-1] 
-        z_bits=z_bits[::-1] 
-        x_bits=x_bits[::-1]   
+        # y_bits=np.logical_not(np.logical_xor(self.x_bits, self.z_bits))
+        # x_bits= np.logical_xor(y_bits,self.x_bits)   
+        # z_bits=np.logical_xor(y_bits,self.z_bits)
+        # y_bits=y_bits[::-1] 
+        # z_bits=z_bits[::-1] 
+        # x_bits=x_bits[::-1]   
         
-        result=x_bits[0]*X_MAT+y_bits[0]*Y_MAT+z_bits[0]*Z_MAT
-        for i in range(len(self)-1):  
-            result= np.kron(result, x_bits[i+1]*X_MAT+y_bits[i+1]*Y_MAT+z_bits[i+1]*Z_MAT)
+        # result=x_bits[0]*X_MAT+y_bits[0]*Y_MAT+z_bits[0]*Z_MAT
+        # for i in range(len(self)-1):  
+        #     result= np.kron(result, x_bits[i+1]*X_MAT+y_bits[i+1]*Y_MAT+z_bits[i+1]*Z_MAT)
+        paulistr = list(str(self))
+        
+        for string_ops in paulistr:
+            if string_ops == 'I':
+                matrix = np.kron(matrix,I_MAT)
+            if string_ops == 'X':
+                matrix = np.kron(matrix,X_MAT)
+            if string_ops == 'Y':
+                matrix = np.kron(matrix,Y_MAT)
+            if string_ops == 'Z':
+                matrix = np.kron(matrix,Z_MAT)
+            
         
         ################################################################################################################
 
@@ -758,9 +771,33 @@ class LinearCombinaisonPauliString(object):
         # YOUR CODE HERE (OPTIONAL)
         # TO COMPLETE (after activity 3.1)
         # Hints : sum all the matrices of all PauliStrings weighted by their coef
+        I_MAT = np.array([[1, 0],[0, 1]])
+        X_MAT = np.array([[0, 1],[1, 0]])
+        Y_MAT = np.array([[0, -1j],[1j, 0]])
+        Z_MAT = np.array([[1, 0],[0, -1]])
+        i=0
+        for paulistrings in self.pauli_strings:
+            matrix_temp = np.ones((1,1),dtype = np.complex)     
+            paulistr = list(str(paulistrings))
+            
+            for string_ops in paulistr:
+                if string_ops == 'I':
+                    matrix_temp = np.kron(matrix_temp,I_MAT)
+                if string_ops == 'X':
+                    matrix_temp = np.kron(matrix_temp,X_MAT)
+                if string_ops == 'Y':
+                    matrix_temp = np.kron(matrix_temp,Y_MAT)
+                if string_ops == 'Z':
+                    matrix_temp = np.kron(matrix_temp,Z_MAT)
+            
+            matrix = matrix + self.coefs[i]*matrix_temp
+            i = i+1
+        
+        
+        
         ################################################################################################################
-        for i in range(len(self)):
-            matrix=matrix+ self.coefs[i] * PauliString.to_matrix(self.pauli_strings[i])
+        # for i in range(len(self)):
+        #     matrix=matrix+ self.coefs[i] * PauliString.to_matrix(self.pauli_strings[i])
         # raise NotImplementedError()
 
         return matrix

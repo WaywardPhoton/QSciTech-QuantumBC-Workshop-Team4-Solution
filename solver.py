@@ -52,6 +52,8 @@ class ExactSolver(LCPSSolver):
         # YOUR CODE HERE (OPTIONAL)
         # TO COMPLETE (after activity 3.2)
         # Hint : np.linalg.eigh
+        
+        
         ################################################################################################################
 
         raise NotImplementedError()
@@ -69,14 +71,22 @@ class ExactSolver(LCPSSolver):
             float, np.array : The lowest eigenvalue and the associated eigenvector.
         """
 
-        eig_value, eig_vector = None
+        #eig_value, eig_vector = None
 
         ################################################################################################################
         # YOUR CODE HERE (OPTIONAL)
         # TO COMPLETE (after activity 3.2)
+        
+        hamiltonian_matrix_h2 = lcps.to_matrix()
+        eig_values, eig_vectors = np.linalg.eigh(hamiltonian_matrix_h2)
+        eig_order = np.argsort(eig_values)
+        eig_values = eig_values[eig_order]
+        eig_vectors = eig_vectors[:,eig_order]
+        
+        eig_value, eig_vector = eig_values[0], eig_vectors[:,0]
         ################################################################################################################
 
-        raise NotImplementedError()
+        #raise NotImplementedError()
 
         return eig_value, eig_vector
 
