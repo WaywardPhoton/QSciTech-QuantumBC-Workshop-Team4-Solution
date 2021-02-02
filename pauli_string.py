@@ -358,7 +358,7 @@ class PauliString(object):
 
         #raise NotImplementedError()
         
-        return result
+        return matrix
 
 
 class LinearCombinaisonPauliString(object):
