@@ -95,7 +95,7 @@ class Evaluator(object):
                      
         #   1. Execute the eval_circuits on the backend
         job = execute(eval_circuits,backend=self.backend,**self.execute_opts)
-        job_monitor(job)
+        # job_monitor(job)
         result = job.result()
         
         for eval_circuit,interpreter in zip(eval_circuits,self.interpreters):
