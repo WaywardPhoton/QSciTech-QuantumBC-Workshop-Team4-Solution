@@ -1,7 +1,7 @@
 # molecule-complete-solution
 Now completed version of the suggested solution to find the ground state of a molecule using quantum computing. We created a variational quantum eigensolver (VQE) that finds the ground state energy of the hydrogen (H2) molecule on IBM's quantum  computer.  We use Jordan-Wigner mapping to map the fermionic operators to Pauli matrices. Noise mitigation is also applied to give a better solution. 
 
-![](https://github.com/WaywardPhoton/QSciTech-QuantumBC-Workshop-Team4-Solution/blob/main/summary.png)
+![](https://github.com/WaywardPhoton/QSciTech-QuantumBC-Workshop-Team4-Solution/blob/main/summary2.png)
 
 Description of the files :
 - hamiltonian.py : This files defines the FermionicHamiltonian class and subclasses. You should be able to partially complete it after activity 2.2 and 2.3. The 'to_linear_combinaison_pauli_string' methods can be completed after activity 3.1.
